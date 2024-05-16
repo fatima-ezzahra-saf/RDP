@@ -26,7 +26,18 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
 
     private void initUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+
+        // Get the screen size of the client
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        // Set the frame size to 80% of the client's screen size
+        int width = (int) (screenSize.width * 0.8);
+        int height = (int) (screenSize.height * 0.8);
+        setSize(width, height);
+
+        // Center the frame on the screen
+        setLocationRelativeTo(null);
+
         setLayout(new BorderLayout());
 
         screenLabel = new JLabel();
@@ -36,11 +47,12 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         addMouseListener(this);
         addMouseMotionListener(this);
     }
+    
 
     private void connectToRemoteScreen() {
         try {
-//            Registry registry = LocateRegistry.getRegistry("192.168.137.78", 1099);
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            Registry registry = LocateRegistry.getRegistry("192.168.137.78", 1099);
+            //Registry registry = LocateRegistry.getRegistry("localhost", 1099);
 
             remoteScreen = (RemoteScreen) registry.lookup("RemoteScreen");
             updateScreen();
