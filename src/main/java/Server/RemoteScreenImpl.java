@@ -36,11 +36,6 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
     }
 
     @Override
-    public Point getCursorPosition() throws RemoteException {
-        return java.awt.MouseInfo.getPointerInfo().getLocation();
-    }
-
-    @Override
     public void moveCursor(int x, int y) throws RemoteException {
         this.robot.mouseMove(x, y);
     }
