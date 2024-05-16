@@ -12,6 +12,7 @@ import java.io.IOException;
 public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScreen {
     private final Robot robot;
 
+
     protected RemoteScreenImpl() throws RemoteException {
         super();
         try {
@@ -36,28 +37,25 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
     }
 
     @Override
+    public int getScreenWidth() throws RemoteException {
+        return Toolkit.getDefaultToolkit().getScreenSize().width;
+    }
+
+    @Override
+    public int getScreenHeight() throws RemoteException {
+        return Toolkit.getDefaultToolkit().getScreenSize().height;
+    }
+
+    @Override
     public void moveCursor(int x, int y) throws RemoteException {
         this.robot.mouseMove(x, y);
     }
 
     @Override
-    public void clickMouse(int button) throws RemoteException {
-        switch (button) {
-            case MouseEvent.BUTTON1:
-                this.robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-                this.robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-                break;
-            case MouseEvent.BUTTON2:
-                this.robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
-                this.robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
-                break;
-            case MouseEvent.BUTTON3:
-                this.robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
-                this.robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                break;
-            default:
-                throw new RemoteException("Invalid mouse button: " + button);
-        }
+    public void clickMouse(int x, int y) throws RemoteException {
+        robot.mouseMove(x, y);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
     @Override

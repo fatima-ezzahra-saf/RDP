@@ -2,13 +2,17 @@ package Client;
 
 import Server.RemoteScreen;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.rmi.Naming;
-import javax.imageio.ImageIO;
-import javax.swing.*;
+import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 public class Viewer extends JFrame implements KeyListener, MouseListener, MouseMotionListener {
     private RemoteScreen remoteScreen;
@@ -16,6 +20,11 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
 
     public Viewer() {
         super("Remote Screen Viewer");
+        initUI();
+        connectToRemoteScreen();
+    }
+
+    private void initUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
         setLayout(new BorderLayout());
@@ -26,11 +35,17 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         addKeyListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
+    }
 
+    private void connectToRemoteScreen() {
         try {
-            remoteScreen = (RemoteScreen) Naming.lookup("rmi://localhost/RemoteScreen");
+//            Registry registry = LocateRegistry.getRegistry("192.168.137.78", 1099);
+            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+
+            remoteScreen = (RemoteScreen) registry.lookup("RemoteScreen");
             updateScreen();
-        } catch (Exception e) {
+        } catch (RemoteException | NotBoundException e) {
+            JOptionPane.showMessageDialog(this, "Error connecting to remote screen: " + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }
@@ -43,7 +58,10 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
             ImageIcon icon = new ImageIcon(image);
             screenLabel.setIcon(icon);
             repaint();
-        } catch (Exception e) {
+        } catch (RemoteException e) {
+            JOptionPane.showMessageDialog(this, "Error capturing remote screen: " + e.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -53,7 +71,8 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         try {
             remoteScreen.pressKey(e.getKeyCode());
             updateScreen();
-        } catch (Exception ex) {
+        } catch (RemoteException ex) {
+            JOptionPane.showMessageDialog(this, "Error sending key press to remote screen: " + ex.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
     }
@@ -61,10 +80,28 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
     @Override
     public void mouseClicked(MouseEvent e) {
         try {
-            int button = e.getButton();
-            remoteScreen.clickMouse(button);
+            Point clickPoint = e.getPoint();
+            int x = clickPoint.x;
+            int y = clickPoint.y;
+
+            int remoteWidth = remoteScreen.getScreenWidth();
+            int remoteHeight = remoteScreen.getScreenHeight();
+            int labelWidth = screenLabel.getWidth();
+            int labelHeight = screenLabel.getHeight();
+
+            double scaleX = (double) remoteWidth / labelWidth;
+            double scaleY = (double) remoteHeight / labelHeight;
+
+            int remoteX = (int) (x * scaleX);
+            int remoteY = (int) (y * scaleY);
+
+            remoteX = Math.max(0, Math.min(remoteX, remoteWidth - 1));
+            remoteY = Math.max(0, Math.min(remoteY, remoteHeight - 1));
+
+            remoteScreen.clickMouse(remoteX, remoteY); // Pass both remoteX and remoteY
             updateScreen();
-        } catch (Exception ex) {
+        } catch (RemoteException ex) {
+            JOptionPane.showMessageDialog(this, "Error sending mouse click to remote screen: " + ex.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
     }
@@ -74,7 +111,8 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         try {
             remoteScreen.moveCursor(e.getX(), e.getY());
             updateScreen();
-        } catch (Exception ex) {
+        } catch (RemoteException ex) {
+            JOptionPane.showMessageDialog(this, "Error moving cursor on remote screen: " + ex.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
     }
