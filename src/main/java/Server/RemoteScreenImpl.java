@@ -25,7 +25,8 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
     @Override
     public byte[] captureScreen() throws RemoteException {
         try {
-            Rectangle rectangle = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+            Rectangle rectangle = new Rectangle(dimension);
             BufferedImage screenshot = this.robot.createScreenCapture(rectangle);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(screenshot, "png", outputStream);
