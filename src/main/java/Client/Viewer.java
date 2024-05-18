@@ -20,19 +20,25 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
 
     public Viewer() {
         super("Remote Screen Viewer");
-        initUI();
         connectToRemoteScreen();
+        initUI();
+        updateScreen();
     }
 
     private void initUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Get the screen size of the client
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        // Get the screen size of the remote
+        Dimension screenSize = null;
+        try {
+            screenSize = remoteScreen.getScreenSize();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
         // Set the frame size to 80% of the client's screen size
-        int width = (int) (screenSize.width * 0.8);
-        int height = (int) (screenSize.height * 0.8);
+        int width = (int) (screenSize.width);
+        int height = (int) (screenSize.height);
         setSize(width, height);
 
         // Center the frame on the screen
@@ -47,15 +53,14 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         addMouseListener(this);
         addMouseMotionListener(this);
     }
-    
+
 
     private void connectToRemoteScreen() {
         try {
-            Registry registry = LocateRegistry.getRegistry("192.168.137.78", 1099);
-            //Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            //Registry registry = LocateRegistry.getRegistry("192.168.137.78", 1099);
+            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
 
             remoteScreen = (RemoteScreen) registry.lookup("RemoteScreen");
-            updateScreen();
         } catch (RemoteException | NotBoundException e) {
             JOptionPane.showMessageDialog(this, "Error connecting to remote screen: " + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
@@ -96,8 +101,8 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
             int x = clickPoint.x;
             int y = clickPoint.y;
 
-            int remoteWidth = remoteScreen.getScreenWidth();
-            int remoteHeight = remoteScreen.getScreenHeight();
+            int remoteWidth = remoteScreen.getScreenSize().width;
+            int remoteHeight = remoteScreen.getScreenSize().height;
             int labelWidth = screenLabel.getWidth();
             int labelHeight = screenLabel.getHeight();
 

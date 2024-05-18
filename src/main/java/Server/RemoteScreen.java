@@ -9,6 +9,5 @@ public interface RemoteScreen extends Remote {
     void moveCursor(int x, int y) throws RemoteException;
     void clickMouse(int x, int y) throws RemoteException;
     void pressKey(int keyCode) throws RemoteException;
-    int getScreenWidth() throws RemoteException;
-    int getScreenHeight() throws RemoteException;
+    Dimension getScreenSize() throws RemoteException;
 }

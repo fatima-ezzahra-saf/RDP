@@ -37,14 +37,10 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
     }
 
     @Override
-    public int getScreenWidth() throws RemoteException {
-        return Toolkit.getDefaultToolkit().getScreenSize().width;
+    public Dimension getScreenSize() throws RemoteException {
+        return Toolkit.getDefaultToolkit().getScreenSize().getSize();
     }
 
-    @Override
-    public int getScreenHeight() throws RemoteException {
-        return Toolkit.getDefaultToolkit().getScreenSize().height;
-    }
 
     @Override
     public void moveCursor(int x, int y) throws RemoteException {
