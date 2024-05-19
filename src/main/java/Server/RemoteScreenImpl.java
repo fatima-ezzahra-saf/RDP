@@ -132,7 +132,7 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
     @Override
     public void sendFile(String filePath, byte[] fileData) throws RemoteException {
         try {
-            File file = new File(filePath); // NullPointerException occurs here if filePath is null
+            File file = new File(filePath);
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(fileData);
             fos.close();
@@ -150,22 +150,5 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
         } catch (IOException e) {
             throw new RemoteException("Error receiving file: " + e.getMessage());
         }
-    }
-
-    @Override
-    public String[] listFiles(String directoryPath) throws RemoteException {
-        File directory = new File(directoryPath);
-        if (!directory.exists() || !directory.isDirectory()) {
-            throw new RemoteException("Invalid directory: " + directoryPath);
-        }
-        File[] files = directory.listFiles();
-        if (files == null) {
-            return new String[0];
-        }
-        String[] fileNames = new String[files.length];
-        for (int i = 0; i < files.length; i++) {
-            fileNames[i] = files[i].getName();
-        }
-        return fileNames;
     }
 }

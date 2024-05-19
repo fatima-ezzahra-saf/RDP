@@ -91,7 +91,7 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
 
     private void connectToRemoteScreen() {
         try {
-            Registry registry = LocateRegistry.getRegistry("192.168.110.125", 1099);
+            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
             remoteScreen = (RemoteScreen) registry.lookup("RemoteScreen");
         } catch (RemoteException | NotBoundException e) {
             JOptionPane.showMessageDialog(this, "Error connecting to remote screen: " + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
@@ -259,7 +259,7 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter("All Files", "*.*");
         fileChooser.setFileFilter(filter);
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY); // Allow selecting files only
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int result = fileChooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -271,33 +271,16 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
     }
 
     private void receiveFile() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Browse remote directories
-        int result = fileChooser.showOpenDialog(this);
+        String remoteFilePath = JOptionPane.showInputDialog(this, "Enter the remote file path:");
+        if (remoteFilePath != null && !remoteFilePath.isEmpty()) {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            int result = fileChooser.showSaveDialog(this);
 
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File remoteDirectory = fileChooser.getSelectedFile();
-            String[] remoteFiles;
-            try {
-                remoteFiles = remoteScreen.listFiles(remoteDirectory.getAbsolutePath());
-            } catch (RemoteException e) {
-                JOptionPane.showMessageDialog(this, "Error listing remote files: " + e.getMessage(), "Remote File Error", JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-                return;
-            }
-
-            String remoteFilePath = (String) JOptionPane.showInputDialog(this, "Select a file:", "Remote Files", JOptionPane.QUESTION_MESSAGE, null, remoteFiles, remoteFiles[0]);
-
-            if (remoteFilePath != null) {
-                JFileChooser localFileChooser = new JFileChooser();
-                localFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                int localResult = localFileChooser.showSaveDialog(this);
-
-                if (localResult == JFileChooser.APPROVE_OPTION) {
-                    File localFile = localFileChooser.getSelectedFile();
-                    String localFilePath = localFile.getAbsolutePath();
-                    new FileTransferThread(false, remoteFilePath, localFilePath).start();
-                }
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File localFile = fileChooser.getSelectedFile();
+                String localFilePath = localFile.getAbsolutePath();
+                new FileTransferThread(false, remoteFilePath, localFilePath).start();
             }
         }
     }
@@ -331,7 +314,6 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
             }
         }
     }
-
 
     // Unused listener methods
     @Override
