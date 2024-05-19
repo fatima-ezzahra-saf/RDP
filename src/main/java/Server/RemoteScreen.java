@@ -17,4 +17,5 @@ public interface RemoteScreen extends Remote {
     void typeText(String text) throws RemoteException;
     void sendFile(String filePath, byte[] fileData) throws RemoteException;
     byte[] receiveFile(String filePath) throws RemoteException;
+    String[] listFiles(String directoryPath) throws RemoteException;  // New method for listing files
 }
