@@ -4,11 +4,16 @@ import Server.RemoteScreen;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -17,6 +22,7 @@ import java.rmi.registry.Registry;
 public class Viewer extends JFrame implements KeyListener, MouseListener, MouseMotionListener {
     private RemoteScreen remoteScreen;
     private JLabel screenLabel;
+    private JProgressBar progressBar;
 
     private double scaleX;
     private double scaleY;
@@ -60,6 +66,22 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         screenLabel = new JLabel();
         add(screenLabel, BorderLayout.CENTER);
 
+        progressBar = new JProgressBar();
+        add(progressBar, BorderLayout.SOUTH);
+
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenuItem sendFileItem = new JMenuItem("Send File");
+        JMenuItem receiveFileItem = new JMenuItem("Receive File");
+
+        sendFileItem.addActionListener(e -> sendFile());
+        receiveFileItem.addActionListener(e -> receiveFile());
+
+        fileMenu.add(sendFileItem);
+        fileMenu.add(receiveFileItem);
+        menuBar.add(fileMenu);
+        setJMenuBar(menuBar);
+
         addKeyListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
@@ -69,7 +91,7 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
 
     private void connectToRemoteScreen() {
         try {
-            Registry registry = LocateRegistry.getRegistry("100.70.33.236", 1099);
+            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
             remoteScreen = (RemoteScreen) registry.lookup("RemoteScreen");
         } catch (RemoteException | NotBoundException e) {
             JOptionPane.showMessageDialog(this, "Error connecting to remote screen: " + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
@@ -89,7 +111,7 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
                 screenLabel.setIcon(icon);
             }
             repaint();
-        } catch (RemoteException | IOException e) {
+        } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Error capturing remote screen: " + e.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
@@ -230,6 +252,59 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
         } catch (RemoteException ex) {
             JOptionPane.showMessageDialog(this, "Error dragging cursor on remote screen: " + ex.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
+        }
+    }
+    private void sendFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("All Files", "*.*");
+        fileChooser.setFileFilter(filter);
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            new FileTransferThread(true, file.getAbsolutePath()).start();
+        }
+    }
+
+    private void receiveFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File directory = fileChooser.getSelectedFile();
+            String fileName = JOptionPane.showInputDialog(this, "Enter the file name:");
+            if (fileName != null && !fileName.isEmpty()) {
+                String filePath = directory.getAbsolutePath() + File.separator + fileName;
+                new FileTransferThread(false, filePath).start();
+            }
+        }
+    }
+
+    private class FileTransferThread extends Thread {
+        private boolean sendMode;
+        private String filePath;
+
+        public FileTransferThread(boolean sendMode, String filePath) {
+            this.sendMode = sendMode;
+            this.filePath = filePath;
+        }
+
+        @Override
+        public void run() {
+            try {
+                if (sendMode) {
+                    byte[] fileData = Files.readAllBytes(Paths.get(filePath));
+                    remoteScreen.sendFile(filePath, fileData);
+                } else {
+                    byte[] fileData = remoteScreen.receiveFile(filePath);
+                    Files.write(Paths.get(filePath), fileData);
+                }
+                JOptionPane.showMessageDialog(Viewer.this, "File transfer completed successfully.", "File Transfer", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(Viewer.this, "Error during file transfer: " + e.getMessage(), "File Transfer Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
         }
     }
 

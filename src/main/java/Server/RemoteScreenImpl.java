@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.awt.image.BufferedImage;
@@ -121,6 +125,30 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
             case MouseEvent.BUTTON2: return InputEvent.BUTTON2_DOWN_MASK;
             case MouseEvent.BUTTON3: return InputEvent.BUTTON3_DOWN_MASK;
             default: return -1;
+        }
+    }
+
+
+    @Override
+    public void sendFile(String filePath, byte[] fileData) throws RemoteException {
+        try {
+            File file = new File(filePath);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(fileData);
+            fos.close();
+            System.out.println("File received: " + filePath);
+        } catch (IOException e) {
+            throw new RemoteException("Error sending file: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public byte[] receiveFile(String filePath) throws RemoteException {
+        try {
+            File file = new File(filePath);
+            return Files.readAllBytes(Paths.get(file.getAbsolutePath()));
+        } catch (IOException e) {
+            throw new RemoteException("Error receiving file: " + e.getMessage());
         }
     }
 }

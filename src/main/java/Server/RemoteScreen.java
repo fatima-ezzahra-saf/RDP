@@ -15,4 +15,6 @@ public interface RemoteScreen extends Remote {
     void releaseMouseButton(int button) throws RemoteException;
     void typeKey(int keyCode) throws RemoteException;
     void typeText(String text) throws RemoteException;
+    void sendFile(String filePath, byte[] fileData) throws RemoteException;
+    byte[] receiveFile(String filePath) throws RemoteException;
 }
