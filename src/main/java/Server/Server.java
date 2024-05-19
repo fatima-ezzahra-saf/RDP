@@ -9,7 +9,7 @@ public class Server {
             RemoteScreenImpl remoteScreen = new RemoteScreenImpl();
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("RemoteScreen", remoteScreen);
-            System.out.println("RemoteScreen server is running...");
+            System.out.println("Server started and RemoteScreen bound to registry");
         } catch (Exception e) {
             e.printStackTrace();
         }
