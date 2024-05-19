@@ -3,67 +3,53 @@ package Server;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.io.*;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScreen {
-    private Robot robot;
+    private final Robot robot;
 
-    public RemoteScreenImpl() throws RemoteException {
+    protected RemoteScreenImpl() throws RemoteException {
+        super();
         try {
-            robot = new Robot();
+            this.robot = new Robot();
         } catch (AWTException e) {
-            throw new RemoteException("Error initializing Robot", e);
+            throw new RemoteException("Failed to initialize Robot", e);
+        }
+    }
+
+    @Override
+    public byte[] captureScreen() throws RemoteException {
+        try {
+            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+            Rectangle rectangle = new Rectangle(dimension);
+            BufferedImage screenshot = this.robot.createScreenCapture(rectangle);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(screenshot, "png", outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RemoteException("Failed to capture screen.", e);
         }
     }
 
     @Override
     public Dimension getScreenSize() throws RemoteException {
-        return Toolkit.getDefaultToolkit().getScreenSize();
+        return Toolkit.getDefaultToolkit().getScreenSize().getSize();
     }
 
     @Override
-    public byte[] captureScreen() throws RemoteException {
-        BufferedImage screenImage = robot.createScreenCapture(new Rectangle(getScreenSize()));
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(screenImage, "jpg", baos);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            throw new RemoteException("Error capturing screen", e);
-        }
-    }
-
-    @Override
-    public void pressKey(int keyCode) throws RemoteException {
-        robot.keyPress(keyCode);
-    }
-
-    @Override
-    public void releaseKey(int keyCode) throws RemoteException {
-        robot.keyRelease(keyCode);
-    }
-
-    @Override
-    public void typeKey(char keyChar) throws RemoteException {
-        // Simulate typing by pressing and releasing the corresponding key code
-        int keyCode = KeyEvent.getExtendedKeyCodeForChar(keyChar);
-        pressKey(keyCode);
-        releaseKey(keyCode);
-    }
-
-    @Override
-    public void pressMouseButton(int button) throws RemoteException {
-        robot.mousePress(button);
-    }
-
-    @Override
-    public void releaseMouseButton(int button) throws RemoteException {
-        robot.mouseRelease(button);
+    public void moveCursor(int x, int y) throws RemoteException {
+        this.robot.mouseMove(x, y);
     }
 
     @Override
@@ -74,30 +60,95 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
     }
 
     @Override
-    public void moveCursor(int x, int y) throws RemoteException {
-        robot.mouseMove(x, y);
+    public void pressKey(int keyCode) throws RemoteException {
+        this.robot.keyPress(keyCode);
     }
 
     @Override
-    public void dragMouse(int x, int y) throws RemoteException {
-        robot.mouseMove(x, y);
+    public void releaseKey(int keyCode) throws RemoteException {
+        this.robot.keyRelease(keyCode);
     }
 
     @Override
-    public void sendFile(String fileName, byte[] data) throws RemoteException {
-        try {
-            Files.write(Paths.get(fileName), data);
-        } catch (IOException e) {
-            throw new RemoteException("Error saving file", e);
+    public void pressMouseButton(int button) throws RemoteException {
+        int buttonMask = getMouseButtonMask(button);
+        if (buttonMask != -1) {
+            this.robot.mousePress(buttonMask);
         }
     }
 
     @Override
-    public byte[] receiveFile(String fileName) throws RemoteException {
+    public void releaseMouseButton(int button) throws RemoteException {
+        int buttonMask = getMouseButtonMask(button);
+        if (buttonMask != -1) {
+            this.robot.mouseRelease(buttonMask);
+        }
+    }
+
+    @Override
+    public void typeKey(int keyCode) throws RemoteException {
+        this.robot.keyPress(keyCode);
+        this.robot.keyRelease(keyCode);
+    }
+
+    @Override
+    public void typeText(String text) throws RemoteException {
+        for (char c : text.toCharArray()) {
+            typeChar(c);
+        }
+    }
+
+    private void typeChar(char c) {
         try {
-            return Files.readAllBytes(Paths.get(fileName));
+            boolean shiftPressed = false;
+            if (Character.isUpperCase(c) || c == '!' || c == '@' || c == '#' || c == '$' || c == '%' || c == '^' || c == '&' || c == '*') {
+                shiftPressed = true;
+                robot.keyPress(KeyEvent.VK_SHIFT);
+            }
+            int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
+            if (keyCode == KeyEvent.VK_UNDEFINED) {
+                throw new IllegalArgumentException("Cannot type character " + c);
+            }
+            robot.keyPress(keyCode);
+            robot.keyRelease(keyCode);
+            if (shiftPressed) {
+                robot.keyRelease(KeyEvent.VK_SHIFT);
+            }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int getMouseButtonMask(int button) {
+        switch (button) {
+            case MouseEvent.BUTTON1: return InputEvent.BUTTON1_DOWN_MASK;
+            case MouseEvent.BUTTON2: return InputEvent.BUTTON2_DOWN_MASK;
+            case MouseEvent.BUTTON3: return InputEvent.BUTTON3_DOWN_MASK;
+            default: return -1;
+        }
+    }
+
+
+    @Override
+    public void sendFile(String filePath, byte[] fileData) throws RemoteException {
+        try {
+            File file = new File(filePath);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(fileData);
+            fos.close();
+            System.out.println("File received: " + filePath);
         } catch (IOException e) {
-            throw new RemoteException("Error reading file", e);
+            throw new RemoteException("Error sending file: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public byte[] receiveFile(String filePath) throws RemoteException {
+        try {
+            File file = new File(filePath);
+            return Files.readAllBytes(Paths.get(file.getAbsolutePath()));
+        } catch (IOException e) {
+            throw new RemoteException("Error receiving file: " + e.getMessage());
         }
     }
 }
