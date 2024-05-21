@@ -1,32 +1,31 @@
 package Server;
 
-import java.awt.*;
+import java.awt.Dimension;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface RemoteScreen extends Remote {
-    byte[] captureScreen() throws RemoteException;
-
     Dimension getScreenSize() throws RemoteException;
 
-    void moveCursor(int x, int y) throws RemoteException;
-
-    void clickMouse(int x, int y) throws RemoteException;
+    byte[] captureScreen() throws RemoteException;
 
     void pressKey(int keyCode) throws RemoteException;
 
     void releaseKey(int keyCode) throws RemoteException;
 
+    void typeKey(char keyChar) throws RemoteException;
+
     void pressMouseButton(int button) throws RemoteException;
 
     void releaseMouseButton(int button) throws RemoteException;
 
-    void typeKey(int keyCode) throws RemoteException;
+    void clickMouse(int x, int y) throws RemoteException;
 
-    void typeText(String text) throws RemoteException;
+    void moveCursor(int x, int y) throws RemoteException;
 
-    void sendFile(String filePath, byte[] fileData) throws RemoteException;
+    void dragMouse(int x, int y) throws RemoteException;
 
-    byte[] receiveFile(String filePath) throws RemoteException;
+    void sendFile(String fileName, byte[] data) throws RemoteException;
 
+    byte[] receiveFile(String fileName) throws RemoteException;
 }
