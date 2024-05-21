@@ -154,12 +154,7 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
 
     @Override
     public void keyTyped(KeyEvent e) {
-        try {
-            remoteScreen.typeKey(e.getKeyChar());
-        } catch (RemoteException ex) {
-            JOptionPane.showMessageDialog(this, "Error sending key typed to remote screen: " + ex.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
+        return;
     }
 
     @Override
@@ -184,22 +179,7 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        try {
-//            Point clickPoint = e.getPoint();
-//            Insets insets = getInsets();
-//            int dx = -insets.left;
-//            int dy = -insets.top + progressBar.getHeight() - getRootPane().getHeight() + screenLabel.getHeight();
-//            clickPoint.translate(dx, dy);
-//
-//            Dimension localSize = screenLabel.getSize();
-//            Dimension remoteSize = remoteScreen.getScreenSize();
-//
-//            Point remoteClickPoint = mapLocalToRemoteCursor(clickPoint, localSize, remoteSize);
-            remoteScreen.clickMouse(e.getButton());
-        } catch (RemoteException ex) {
-            JOptionPane.showMessageDialog(this, "Error sending mouse click to remote screen: " + ex.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
+        return;
     }
 
     @Override
@@ -288,7 +268,7 @@ public class Viewer extends JFrame implements KeyListener, MouseListener, MouseM
             try {
                 if (sendMode) {
                     byte[] fileData = Files.readAllBytes(Paths.get(sourceFilePath));
-                    String destinationPath = "path/to/server/directory/" + destinationFilePath; // Specify the relative path on the server
+                    String destinationPath = "./" + destinationFilePath;
                     remoteScreen.sendFile(destinationPath, fileData);
                 } else {
                     byte[] fileData = remoteScreen.receiveFile(sourceFilePath);
