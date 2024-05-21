@@ -19,7 +19,7 @@ public interface RemoteScreen extends Remote {
 
     void releaseMouseButton(int button) throws RemoteException;
 
-    void clickMouse(int x, int y) throws RemoteException;
+    void clickMouse(int button) throws RemoteException;
 
     void moveCursor(int x, int y) throws RemoteException;
 

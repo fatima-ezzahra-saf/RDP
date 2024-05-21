@@ -3,6 +3,7 @@ package Server;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
@@ -58,19 +59,55 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
 
     @Override
     public void pressMouseButton(int button) throws RemoteException {
-        robot.mousePress(button);
+        int buttonToPress;
+        switch (button) {
+            case MouseEvent.BUTTON1:
+                buttonToPress = InputEvent.BUTTON1_DOWN_MASK;
+                break;
+            case MouseEvent.BUTTON3:
+                buttonToPress = InputEvent.BUTTON3_DOWN_MASK;
+                break;
+            default:
+                throw new RemoteException("Unsupported mouse button: " + button);
+        }
+        robot.mousePress(buttonToPress);
     }
 
     @Override
     public void releaseMouseButton(int button) throws RemoteException {
-        robot.mouseRelease(button);
+        int buttonToRelease;
+        switch (button) {
+            case MouseEvent.BUTTON1:
+                buttonToRelease = InputEvent.BUTTON1_DOWN_MASK;
+                break;
+            case MouseEvent.BUTTON3:
+                buttonToRelease = InputEvent.BUTTON3_DOWN_MASK;
+                break;
+            default:
+                throw new RemoteException("Unsupported mouse button: " + button);
+        }
+        robot.mouseRelease(buttonToRelease);
     }
 
     @Override
-    public void clickMouse(int x, int y) throws RemoteException {
-        robot.mouseMove(x, y);
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    public void clickMouse(int button) throws RemoteException {
+        int buttonMask;
+        switch (button) {
+            case MouseEvent.BUTTON1:
+                buttonMask = InputEvent.BUTTON1_DOWN_MASK;
+                break;
+            case MouseEvent.BUTTON2:
+                buttonMask = InputEvent.BUTTON2_DOWN_MASK;
+                break;
+            case MouseEvent.BUTTON3:
+                buttonMask = InputEvent.BUTTON3_DOWN_MASK;
+                break;
+            default:
+                throw new RemoteException("Unsupported mouse button: " + button);
+        }
+
+        robot.mousePress(buttonMask);
+        robot.mouseRelease(buttonMask);
     }
 
     @Override
