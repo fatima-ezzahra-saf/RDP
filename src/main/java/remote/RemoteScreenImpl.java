@@ -1,4 +1,4 @@
-package Server;
+package remote;
 
 import java.awt.*;
 import java.awt.event.InputEvent;

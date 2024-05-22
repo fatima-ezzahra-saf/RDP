@@ -1,6 +1,6 @@
-package Client;
+package viewer;
 
-import Server.RemoteScreen;
+import remote.RemoteScreen;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

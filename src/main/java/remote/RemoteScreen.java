@@ -1,4 +1,4 @@
-package Server;
+package remote;
 
 import java.awt.Dimension;
 import java.rmi.Remote;

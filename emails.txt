@@ -1,0 +1,32 @@
+Madame, Monsieur,
+
+Étudiant en deuxième année du cycle ingénieur en logiciel à la Faculté des Sciences et Techniques de Marrakech, je cherche un stage pratique de fin d'année (PFA) de deux mois à partir du 1er juillet 2024.
+
+J'ai acquis des compétences en développement full-stack avec des technologies comme Java/Spring, React.js, et PHP/Laravel à travers divers projets académiques et professionnels. Par exemple, j'ai développé une application de gestion de conférences en Laravel et React.js, et un système de détection de fuites d'eau en temps réel utilisant Kafka et TensorFlow.
+
+Je souhaite rejoindre votre entreprise pour [mentionner une raison spécifique liée à l'entreprise] et je suis convaincu de pouvoir apporter une valeur ajoutée grâce à mes compétences techniques et ma capacité à travailler en équipe.
+
+Je vous mets à disposition mon CV et mon portfolio pour plus d'informations sur mon parcours et mes réalisations :  https://younessserrakhi.github.io/portfolio/.
+
+Je suis disponible pour un entretien à votre convenance pour discuter de ma candidature. Merci pour votre attention.
+
+Cordialement,
+
+Youness Serrakhi
+
+
+
+
+Je suis étudiant en 2ème année du cycle ingénieur en logiciel à la FST de Marrakech, à la recherche d'un stage PFA de deux mois à partir du 1er juillet 2024. Passionné par le développement full-stack (Java/Spring, React.js), je serais ravi de rejoindre votre équipe.
+
+Vous trouverez plus d'informations sur mon parcours dans mon CV et portfolio : https://younessserrakhi.github.io/portfolio/.
+
+Merci pour votre considération.
+
+Cordialement,
+Youness Serrakhi
+
+
+Je suis étudiant en 2ème année du cycle ingénieur en logiciel, à la recherche d'un stage PFA de deux mois à partir du 1er juillet 2024. Passionné par le développement full-stack (Java/Spring, React.js), je serais ravi de rejoindre votre équipe.
+
+https://younessserrakhi.github.io/portfolio/.

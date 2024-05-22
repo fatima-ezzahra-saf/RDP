@@ -1,7 +1,7 @@
-package Client;
+package viewer;
 
 
-import Server.RemoteScreen;
+import remote.RemoteScreen;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;

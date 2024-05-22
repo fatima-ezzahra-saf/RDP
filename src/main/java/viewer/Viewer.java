@@ -1,9 +1,11 @@
-package Client;
+package viewer;
 
-import Server.RemoteScreen;
+import remote.RemoteScreen;
 
 import javax.swing.*;
 import java.awt.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 public class Viewer extends JFrame {
     private RemoteScreen remoteScreen;
@@ -13,7 +15,7 @@ public class Viewer extends JFrame {
 
     public Viewer() {
         super("Remote Screen Viewer");
-        connectToRemoteScreen();
+        connectToRemoteScreen("localhost");//DNS server IP
         screenHandler = new ScreenHandler(remoteScreen, this);
         fileTransferHandler = new FileTransferHandler(remoteScreen, this);
         eventHandler = new EventHandler(remoteScreen, this, screenHandler.getScreenLabel(), screenHandler.getProgressBar(), screenHandler);
@@ -58,9 +60,10 @@ public class Viewer extends JFrame {
         eventHandler.registerListeners();
     }
 
-    private void connectToRemoteScreen() {
+    private void connectToRemoteScreen(String host) {
         try {
-            remoteScreen = RemoteScreenConnection.connect("localhost", 1099, "RemoteScreen");
+            Registry registry = LocateRegistry.getRegistry(host, 1099);
+            remoteScreen = (RemoteScreen) registry.lookup("RemoteScreen");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error connecting to remote screen: " + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
