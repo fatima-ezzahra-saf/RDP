@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/RDP-Project.iml" filepath="$PROJECT_DIR$/RDP-Project.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/Bureau_a_distance.iml" filepath="$PROJECT_DIR$/Bureau_a_distance.iml" />
+>>>>>>> 3e5f31953318331a401843df00825eb56e6ba331
     </modules>
   </component>
 </project>
