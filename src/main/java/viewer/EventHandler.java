@@ -130,4 +130,5 @@ public class EventHandler implements KeyListener, MouseListener, MouseMotionList
         JOptionPane.showMessageDialog(frame, message + ex.getMessage(), "Remote Screen Error", JOptionPane.ERROR_MESSAGE);
         ex.printStackTrace();
     }
+
 }

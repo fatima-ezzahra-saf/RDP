@@ -4,6 +4,7 @@ import remote.RemoteScreen;
 
 import javax.swing.*;
 import java.awt.*;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -12,10 +13,13 @@ public class Viewer extends JFrame {
     private ScreenHandler screenHandler;
     private FileTransferHandler fileTransferHandler;
     private EventHandler eventHandler;
+    private JMenuBar menuBar;
+    private JMenu videoMenu;
+    private JMenuItem playVideoItem;
 
     public Viewer() {
         super("Remote Screen Viewer");
-        connectToRemoteScreen("localhost");//DNS server IP
+        connectToRemoteScreen("localhost"); // DNS server IP
         screenHandler = new ScreenHandler(remoteScreen, this);
         fileTransferHandler = new FileTransferHandler(remoteScreen, this);
         eventHandler = new EventHandler(remoteScreen, this, screenHandler.getScreenLabel(), screenHandler.getProgressBar(), screenHandler);
@@ -44,17 +48,40 @@ public class Viewer extends JFrame {
         add(screenHandler.getScreenLabel(), BorderLayout.CENTER);
         add(screenHandler.getProgressBar(), BorderLayout.SOUTH);
 
-        JMenuBar menuBar = new JMenuBar();
+        menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
         JMenuItem sendFileItem = new JMenuItem("Send File");
         JMenuItem receiveFileItem = new JMenuItem("Receive File");
+        videoMenu = new JMenu("Vidéo");
+        playVideoItem = new JMenuItem("Lire la vidéo");
 
         sendFileItem.addActionListener(e -> fileTransferHandler.sendFile());
         receiveFileItem.addActionListener(e -> fileTransferHandler.receiveFile());
+        playVideoItem.addActionListener(e -> {
+            try {
+                remoteScreen.startAudioStream();
+                remoteScreen.stopAudioStream();
+            } catch (RemoteException ex) {
+                ex.printStackTrace();
+            }
+        });
 
+        videoMenu.add(playVideoItem);
+        menuBar.add(videoMenu);
         fileMenu.add(sendFileItem);
         fileMenu.add(receiveFileItem);
         menuBar.add(fileMenu);
+
+        // Ajout de l'option de chat
+        JMenu chatMenu = new JMenu("Chat");
+        JMenuItem chatMenuItem = new JMenuItem("Open Chat");
+        chatMenuItem.addActionListener(e -> {
+            ChatWindow chatWindow = new ChatWindow(remoteScreen);
+            chatWindow.setVisible(true);
+        });
+        chatMenu.add(chatMenuItem);
+        menuBar.add(chatMenu);
+
         setJMenuBar(menuBar);
 
         eventHandler.registerListeners();

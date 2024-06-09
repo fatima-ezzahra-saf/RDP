@@ -11,15 +11,33 @@ import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScreen {
     private Robot robot;
+    private Clip clip;
+    private TargetDataLine targetDataLine;
+    private List<String> messages;
 
-    public RemoteScreenImpl() throws RemoteException {
+    public RemoteScreenImpl() throws RemoteException, LineUnavailableException {
         try {
             robot = new Robot();
-        } catch (AWTException e) {
-            throw new RemoteException("Error initializing Robot", e);
+            // Initialize the audio clip
+            clip = AudioSystem.getClip();
+            this.messages = new ArrayList<>();
+            // Get a target data line for the microphone
+            AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+            DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+            targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
+            targetDataLine.open(format);
+        } catch (AWTException | LineUnavailableException e) {
+            throw new RemoteException("Error initializing Robot or audio line", e);
         }
     }
 
@@ -89,6 +107,30 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
         robot.mouseRelease(buttonToRelease);
     }
 
+
+
+    @Override
+    public ArrayList<String> getMessages() throws RemoteException {
+        if (messages != null) {
+            System.out.println("Returning messages: " + messages); // Debug statement
+            return new ArrayList<>(messages);
+        } else {
+            return new ArrayList<>(); // Return an empty list if messages is null
+        }
+    }
+
+    @Override
+    public void sendMessage(String message) throws RemoteException {
+        if (messages != null) {
+            System.out.println("Adding message: " + message); // Debug statement
+            messages.add(message); // Add the message to the list
+        } else {
+            messages = new ArrayList<>(); // Initialize the list if it's null
+            messages.add(message); // Add the message to the newly initialized list
+        }
+    }
+
+
     @Override
     public void clickMouse(int button) throws RemoteException {
         int buttonMask;
@@ -136,5 +178,53 @@ public class RemoteScreenImpl extends UnicastRemoteObject implements RemoteScree
         } catch (IOException e) {
             throw new RemoteException("Error reading file", e);
         }
+    }
+
+    @Override
+    public void startAudioStream() throws RemoteException {
+        try {
+            // Get the audio input stream from the microphone
+            InputStream inputStream = getAudioInputStream(targetDataLine);
+
+            // Specify the audio format of the microphone
+            AudioFormat audioFormat = targetDataLine.getFormat();
+
+            // Open the audio input stream
+            AudioInputStream audioInputStream = new AudioInputStream(inputStream, audioFormat, AudioSystem.NOT_SPECIFIED);
+
+            // Open the audio clip with the audio input stream
+            clip.open(audioInputStream);
+
+            // Start playback
+            clip.start();
+        } catch (LineUnavailableException | IOException e) {
+            throw new RemoteException("Error starting audio stream", e);
+        }
+    }
+
+    @Override
+    public void stopAudioStream() throws RemoteException {
+        try {
+            // Stop the audio clip playback
+            clip.stop();
+        } catch (Exception e) {
+            throw new RemoteException("Error stopping audio stream", e);
+        }
+    }
+
+    public static InputStream getAudioInputStream(TargetDataLine targetDataLine) throws IOException {
+        long burden = Long.parseLong(System.getProperty("java.specification.version"));
+        int bytesRead;
+        byte[] buffer = new byte[Math.min(96000, (int) burden * 40)];
+        InputStream byteStream;
+
+        bytesRead = targetDataLine.read(buffer, 0, buffer.length);
+
+        if (bytesRead < 0)
+            return null;
+
+        byteStream = new ByteArrayInputStream(Arrays.copyOf(buffer, bytesRead));
+
+        return byteStream;
     }
 }

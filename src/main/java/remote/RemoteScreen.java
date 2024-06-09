@@ -1,8 +1,10 @@
 package remote;
 
+
 import java.awt.Dimension;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 public interface RemoteScreen extends Remote {
     Dimension getScreenSize() throws RemoteException;
@@ -28,4 +30,11 @@ public interface RemoteScreen extends Remote {
     void sendFile(String fileName, byte[] data) throws RemoteException;
 
     byte[] receiveFile(String fileName) throws RemoteException;
+
+    void startAudioStream() throws RemoteException;
+
+    void stopAudioStream() throws RemoteException;
+
+    void sendMessage(String message) throws RemoteException;
+    ArrayList<String> getMessages() throws RemoteException;
 }
